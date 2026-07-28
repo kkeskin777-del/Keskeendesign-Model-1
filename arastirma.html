@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Araştırma</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a1520;--surface:#0f1e2e;--surface2:#132438;--border:#1e3a5f;
+    --a1:#fb923c;--a2:#fbbf24;--a3:#86efac;--a4:#fcd34d;--a5:#fde68a;
+    --text:#e8f4ff;--muted:#6a9ab8;
+    --grad:linear-gradient(135deg,#ca8a04,#d97706,#92400e);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background:
+    radial-gradient(ellipse 700px 500px at 5% 15%,rgba(202,138,4,.08) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 500px at 95% 85%,rgba(146,64,14,.07) 0%,transparent 70%);
+    pointer-events:none;z-index:0;}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px;position:relative;z-index:1;}
+
+  /* HEADER */
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+  .logo{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .logo small{font-weight:400;font-size:9px;display:block;-webkit-text-fill-color:var(--muted);color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;}
+
+  /* SYNC BAR */
+  #syncBar{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--muted);}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px;}
+  .search-wrap{flex:1;min-width:200px;position:relative;}
+  .search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px 9px 36px;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+  .search-wrap input:focus{border-color:var(--a2);}
+  .search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;}
+
+  /* BUTTONS */
+  .btn{font-family:'Nunito',sans-serif;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+  .btn-primary{background:var(--grad);color:#fff;padding:9px 20px;border-radius:10px;}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(202,138,4,.3);}
+  .btn-sec{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+  .btn-sec:hover{border-color:var(--a2);color:var(--a2);}
+  .btn-del{background:rgba(255,107,107,.1);color:#fb923c;border:1px solid rgba(255,107,107,.2);}
+  .btn-del:hover{background:rgba(255,107,107,.2);}
+
+  /* KATEGORİ FİLTRE */
+  .kat-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+  .kat-chip{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;}
+  .kat-chip.active{background:var(--a2);border-color:var(--a2);color:#000;font-weight:700;}
+  .kat-chip:hover:not(.active){border-color:var(--a2);color:var(--a2);}
+
+  /* KART GRID */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+
+  /* KART */
+  .kart{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .25s,box-shadow .25s,transform .25s;position:relative;display:flex;flex-direction:column;}
+  .kart:hover{border-color:var(--a4);box-shadow:0 8px 32px rgba(0,0,0,.3);transform:translateY(-2px);}
+  .kart-top-bar{height:3px;background:var(--grad);}
+  .kart-body{padding:16px;flex:1;}
+  .kart-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .kart-baslik{font-family:'Libre Baskerville',serif;font-weight:700;font-size:14px;line-height:1.4;flex:1;}
+  .kart-menu-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+  .kart-menu-btn:hover{color:var(--a1);border-color:var(--a1);}
+
+  /* LİNK LISTESI */
+  .link-liste{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .link-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-decoration:none;transition:border-color .2s;cursor:pointer;}
+  .link-item:hover{border-color:var(--a2);}
+  .link-favicon{width:16px;height:16px;border-radius:3px;flex-shrink:0;}
+  .link-favicon-fallback{width:16px;height:16px;border-radius:3px;background:var(--a2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;font-weight:700;flex-shrink:0;}
+  .link-site{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+  .link-url{font-size:12px;color:var(--a2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .link-del{width:20px;height:20px;border-radius:4px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:color .2s;}
+  .link-del:hover{color:var(--a1);}
+
+  /* NOT */
+  .kart-not{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;white-space:pre-wrap;word-break:break-word;}
+
+  /* KATEGORİ BADGE */
+  .kart-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px;}
+  .kat-badge{font-size:10px;background:rgba(251,191,36,.15);color:var(--a2);border-radius:10px;padding:2px 9px;font-weight:600;border:1px solid rgba(251,191,36,.2);}
+  .kart-tarih{font-size:10px;color:var(--muted);}
+
+  /* BOŞ DURUM */
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty .eb{font-size:48px;margin-bottom:14px;}
+
+  /* MODAL */
+  .modal-bg{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .modal-hdr{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .modal-hdr-title{font-family:'Libre Baskerville',serif;font-size:15px;font-weight:700;color:var(--a2);}
+  .modal-kapat{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+  .modal-kapat:hover{color:var(--a1);}
+  .modal-body{padding:18px 20px;}
+  label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;}
+  input[type=text],textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--a2);box-shadow:0 0 0 3px rgba(251,191,36,.1);}
+  textarea{resize:vertical;min-height:80px;}
+  .fg{margin-bottom:14px;}
+  select option{background:var(--surface2);}
+
+  /* LİNK EKLEYİCİ */
+  .link-ekle-row{display:flex;gap:8px;align-items:center;}
+  .link-ekle-row input{flex:1;}
+  .link-ekle-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .link-ekle-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px;}
+  .link-ekle-site{font-size:11px;color:var(--muted);min-width:80px;}
+  .link-ekle-url{font-size:12px;color:var(--a2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* KATEGORİ YÖNETİM */
+  .kat-yonetim{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .kat-sec-item{background:var(--surface2);border:2px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;}
+  .kat-sec-item.selected{border-color:var(--a2);background:rgba(251,191,36,.1);color:var(--a2);font-weight:700;}
+  .kat-sec-item:hover:not(.selected){border-color:var(--muted);}
+
+  @media(max-width:600px){
+    .grid{grid-template-columns:1fr;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">Araştırma<small>Piyasa & Ürün Notları</small></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div id="syncBar">
+      <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .4s;"></span>
+      <span id="syncLbl">Yükleniyor...</span>
+    </div>
+    <button class="btn btn-primary" onclick="kartEkleAc()">➕ Yeni Kart</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <input type="text" id="aramaInp" placeholder="Kart ara..." oninput="renderKartlar()">
+  </div>
+  <button class="btn btn-sec" onclick="katYonetimAc()">🏷️ Kategoriler</button>
+</div>
+
+<div class="kat-bar" id="katBar"></div>
+<div class="grid" id="kartGrid"></div>
+
+</div>
+
+<!-- KART MODAL -->
+<div class="modal-bg" id="kartModal" style="display:none;" onclick="modalDisTikla(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-title" id="modalBaslik">➕ Yeni Kart</div>
+      <button class="modal-kapat" onclick="modalKapat()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Başlık</label>
+        <input type="text" id="mBaslik" placeholder="Örn: Ahşap masa fikirleri..." autocomplete="off">
+      </div>
+      <div class="fg">
+        <label>Notlar</label>
+        <textarea id="mNot" placeholder="Açıklama, fiyat notu, gözlemler..."></textarea>
+      </div>
+      <div class="fg">
+        <label>Kategori</label>
+        <div class="kat-yonetim" id="mKatSecim"></div>
+      </div>
+      <div class="fg">
+        <label>Linkler</label>
+        <div class="link-ekle-row">
+          <input type="text" id="linkInp" placeholder="https://..." autocomplete="off"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();linkEkle();}">
+          <button class="btn btn-sec" onclick="linkEkle()">+ Ekle</button>
+        </div>
+        <div class="link-ekle-list" id="linkEkleListe"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="kartKaydet()">💾 Kaydet</button>
+        <button class="btn btn-del" style="padding:8px 16px;" onclick="modalKapat()">✕ İptal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KATEGORİ YÖNETİM MODAL -->
+<div class="modal-bg" id="katModal" style="display:none;" onclick="katModalDisTikla(event)">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-hdr">
+      <div class="modal-hdr-title">🏷️ Kategoriler</div>
+      <button class="modal-kapat" onclick="katModalKapat()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>Yeni Kategori</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="yeniKatInp" placeholder="Kategori adı..." autocomplete="off"
+            onkeydown="if(event.key==='Enter'){yeniKatEkle();}">
+          <button class="btn btn-primary" style="padding:8px 14px;" onclick="yeniKatEkle()">+ Ekle</button>
+        </div>
+      </div>
+      <div id="katYonetimListe"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════ VERİ ════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxHYvhXt8Z7Hzypqvj22l4d9q8DGqnB9UvHrZZzHyVt_tDx-GDi69hW6ALyWDsZ1K54/exec';
+let kartlar    = JSON.parse(localStorage.getItem('ar_kartlar')    || '[]');
+let kategoriler= JSON.parse(localStorage.getItem('ar_kategoriler')|| '["Rakip Analizi","İlham","Malzeme","Fiyat Araştırması"]');
+let aktifKat   = '';
+let editIdx    = null;
+let modalLinks = []; // modal içinde geçici link listesi
+
+// ════════════ SYNC ════════════
+let _syncTimer = null, _syncQueue = {}, _syncing = false;
+
+function syncDurum(tip, msg){
+  const renkler = {ok:'#6bcb77',hata:'#ff6b6b',bekle:'#ffd93d',mesgul:'#4d96ff'};
+  document.getElementById('syncDot').style.background = renkler[tip]||'var(--muted)';
+  document.getElementById('syncLbl').textContent = msg;
+}
+
+function syncYaz(key, value){
+  localStorage.setItem(key, JSON.stringify(value));
+  _syncQueue[key] = value;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncGonder, 1500);
+  syncDurum('bekle','Kaydediliyor...');
+}
+
+async function syncGonder(){
+  if(_syncing || !Object.keys(_syncQueue).length) return;
+  const q = {..._syncQueue}; _syncQueue = {}; _syncing = true;
+  syncDurum('mesgul','Senkronize ediliyor...');
+  try{
+    const batch = Object.entries(q).map(([key,value])=>({key,value}));
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({batch})});
+    syncDurum('ok','☁️ Senkronize');
+  }catch(e){
+    syncDurum('hata','⚠️ Bağlantı hatası');
+    Object.assign(_syncQueue, q);
+  }
+  _syncing = false;
+}
+
+async function syncYukle(){
+  syncDurum('mesgul','Yükleniyor...');
+  try{
+    const r = await fetch(`${GAS_URL}?action=getall`);
+    const d = await r.json();
+    if(!d.ok||!d.value){ syncDurum('ok','☁️ Bağlı'); return; }
+    const all = d.value;
+    if(all['ar_kartlar']    !=null){ kartlar    =all['ar_kartlar'];    localStorage.setItem('ar_kartlar',    JSON.stringify(kartlar)); }
+    if(all['ar_kategoriler']!=null){ kategoriler=all['ar_kategoriler'];localStorage.setItem('ar_kategoriler',JSON.stringify(kategoriler)); }
+    syncDurum('ok','☁️ Bağlı');
+    renderKatBar(); renderKartlar();
+  }catch(e){ syncDurum('hata','⚠️ Çevrimdışı'); }
+}
+
+// ════════════ RENDER ════════════
+function renderKatBar(){
+  const bar = document.getElementById('katBar');
+  bar.innerHTML = '<button class="kat-chip'+(aktifKat===''?' active':'')+'" onclick="katSec(\'\')">📦 Tümü ('+kartlar.length+')</button>';
+  kategoriler.forEach(k=>{
+    const sayi = kartlar.filter(c=>c.kategori===k).length;
+    const btn = document.createElement('button');
+    btn.className = 'kat-chip'+(aktifKat===k?' active':'');
+    btn.onclick = ()=>katSec(k);
+    btn.textContent = k + (sayi?' ('+sayi+')':'');
+    bar.appendChild(btn);
+  });
+}
+
+function katSec(k){
+  aktifKat = k;
+  renderKatBar();
+  renderKartlar();
+}
+
+function renderKartlar(){
+  const grid = document.getElementById('kartGrid');
+  const arama = document.getElementById('aramaInp').value.toLowerCase();
+  let liste = [...kartlar];
+  if(aktifKat) liste = liste.filter(c=>c.kategori===aktifKat);
+  if(arama) liste = liste.filter(c=>
+    (c.baslik||'').toLowerCase().includes(arama)||
+    (c.not||'').toLowerCase().includes(arama)||
+    (c.links||[]).some(l=>l.url.toLowerCase().includes(arama))
+  );
+
+  if(!liste.length){
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="eb">🔍</div><p>'+(arama||aktifKat?'Sonuç bulunamadı.':'Henüz kart yok. "Yeni Kart" ile başlayın!')+'</p></div>';
+    return;
+  }
+
+  grid.innerHTML = liste.map(k=>{
+    const orijIdx = kartlar.indexOf(k);
+    const linkHtml = (k.links||[]).map((l,li)=>`
+      <div class="link-item" onclick="event.stopPropagation();window.open('${escH(l.url)}','_blank')">
+        ${getFaviconHtml(l)}
+        <span class="link-site">${escH(l.site||'')}</span>
+        <span class="link-url">${escH(l.url)}</span>
+        <button class="link-del" onclick="event.stopPropagation();linkSilKarttan(${orijIdx},${li})">×</button>
+      </div>`).join('');
+
+    return `<div class="kart">
+      <div class="kart-top-bar"></div>
+      <div class="kart-body">
+        <div class="kart-header">
+          <div class="kart-baslik">${escH(k.baslik||'İsimsiz Kart')}</div>
+          <button class="kart-menu-btn" onclick="kartDuzenle(${orijIdx})">✏️</button>
+        </div>
+        ${k.not?`<div class="kart-not">${escH(k.not)}</div>`:''}
+        <div class="link-liste">${linkHtml}</div>
+        ${!(k.links||[]).length&&!k.not?'<div style="font-size:12px;color:var(--muted);font-style:italic;">Link veya not yok</div>':''}
+      </div>
+      <div class="kart-footer">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          ${k.kategori?`<span class="kat-badge">🏷️ ${escH(k.kategori)}</span>`:''}
+          <span class="kart-tarih">📅 ${k.tarih||''}</span>
+        </div>
+        <button class="btn btn-del" style="padding:3px 10px;font-size:11px;" onclick="kartSil(${orijIdx})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getFaviconHtml(l){
+  if(l.favicon){
+    return `<img class="link-favicon" src="${escH(l.favicon)}" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex';">
+            <div class="link-favicon-fallback" style="display:none;">${(l.site||'?')[0].toUpperCase()}</div>`;
+  }
+  return `<div class="link-favicon-fallback">${(l.site||'?')[0].toUpperCase()}</div>`;
+}
+
+// ════════════ LINK PARSE ════════════
+function parseLink(url){
+  url = url.trim();
+  if(!url.startsWith('http')) url = 'https://'+url;
+  try{
+    const u = new URL(url);
+    const hostname = u.hostname.replace('www.','');
+    const site = hostname.split('.')[0];
+    const favicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    return {url, site: site.charAt(0).toUpperCase()+site.slice(1), favicon, hostname};
+  }catch(e){
+    return {url, site:'Link', favicon:null};
+  }
+}
+
+// ════════════ MODAL ════════════
+function kartEkleAc(){
+  editIdx = null;
+  modalLinks = [];
+  document.getElementById('modalBaslik').textContent = '➕ Yeni Kart';
+  document.getElementById('mBaslik').value = '';
+  document.getElementById('mNot').value = '';
+  document.getElementById('linkInp').value = '';
+  renderModalLinkList();
+  renderModalKatSecim('');
+  document.getElementById('kartModal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('mBaslik').focus(), 100);
+}
+
+function kartDuzenle(idx){
+  editIdx = idx;
+  const k = kartlar[idx];
+  modalLinks = JSON.parse(JSON.stringify(k.links||[]));
+  document.getElementById('modalBaslik').textContent = '✏️ Kartı Düzenle';
+  document.getElementById('mBaslik').value = k.baslik||'';
+  document.getElementById('mNot').value = k.not||'';
+  document.getElementById('linkInp').value = '';
+  renderModalLinkList();
+  renderModalKatSecim(k.kategori||'');
+  document.getElementById('kartModal').style.display = 'flex';
+}
+
+function modalKapat(){
+  document.getElementById('kartModal').style.display = 'none';
+  modalLinks = [];
+  editIdx = null;
+}
+
+function modalDisTikla(e){
+  if(e.target.id==='kartModal') modalKapat();
+}
+
+function renderModalKatSecim(secili){
+  const div = document.getElementById('mKatSecim');
+  div.innerHTML = kategoriler.map(k=>`
+    <button class="kat-sec-item${secili===k?' selected':''}" onclick="katSec2(this,'${escH(k)}')">${escH(k)}</button>
+  `).join('') + '<button class="kat-sec-item" style="opacity:.5;" onclick="katSecTemizle()">✕ Yok</button>';
+}
+
+function katSec2(btn, kat){
+  document.querySelectorAll('.kat-sec-item').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function katSecTemizle(){
+  document.querySelectorAll('.kat-sec-item').forEach(b=>b.classList.remove('selected'));
+}
+
+function getSeciliKat(){
+  const sel = document.querySelector('.kat-sec-item.selected');
+  return sel ? sel.textContent : '';
+}
+
+// ════════════ LİNK ════════════
+function linkEkle(){
+  const inp = document.getElementById('linkInp');
+  const url = inp.value.trim();
+  if(!url) return;
+  const parsed = parseLink(url);
+  modalLinks.push(parsed);
+  inp.value = '';
+  renderModalLinkList();
+  inp.focus();
+}
+
+function linkSilModal(i){
+  modalLinks.splice(i,1);
+  renderModalLinkList();
+}
+
+function renderModalLinkList(){
+  const div = document.getElementById('linkEkleListe');
+  if(!modalLinks.length){ div.innerHTML=''; return; }
+  div.innerHTML = modalLinks.map((l,i)=>`
+    <div class="link-ekle-item">
+      ${getFaviconHtml(l)}
+      <span class="link-ekle-site">${escH(l.site||'')}</span>
+      <span class="link-ekle-url">${escH(l.url)}</span>
+      <button class="link-del" onclick="linkSilModal(${i})">×</button>
+    </div>`).join('');
+}
+
+function linkSilKarttan(kartIdx, linkIdx){
+  kartlar[kartIdx].links.splice(linkIdx,1);
+  syncYaz('ar_kartlar', kartlar);
+  renderKartlar();
+}
+
+// ════════════ KART KAYDET ════════════
+function kartKaydet(){
+  const baslik = document.getElementById('mBaslik').value.trim();
+  if(!baslik){ alert('Başlık giriniz!'); return; }
+
+  // Enter basılmış ama eklenmemiş link varsa ekle
+  const linkInpVal = document.getElementById('linkInp').value.trim();
+  if(linkInpVal) modalLinks.push(parseLink(linkInpVal));
+
+  const kart = {
+    id: editIdx!==null ? kartlar[editIdx].id : Date.now(),
+    baslik,
+    not: document.getElementById('mNot').value.trim(),
+    kategori: getSeciliKat(),
+    links: [...modalLinks],
+    tarih: new Date().toLocaleDateString('tr-TR')
+  };
+
+  if(editIdx !== null){
+    kartlar[editIdx] = kart;
+  } else {
+    kartlar.unshift(kart);
+  }
+
+  syncYaz('ar_kartlar', kartlar);
+  modalKapat();
+  renderKatBar();
+  renderKartlar();
+}
+
+function kartSil(idx){
+  if(!confirm('Bu kartı silmek istiyor musunuz?')) return;
+  kartlar.splice(idx,1);
+  syncYaz('ar_kartlar', kartlar);
+  renderKatBar();
+  renderKartlar();
+}
+
+// ════════════ KATEGORİ YÖNETİM ════════════
+function katYonetimAc(){
+  renderKatYonetimListe();
+  document.getElementById('katModal').style.display = 'flex';
+}
+
+function katModalKapat(){
+  document.getElementById('katModal').style.display = 'none';
+  renderKatBar();
+  renderModalKatSecim(getSeciliKat());
+}
+
+function katModalDisTikla(e){
+  if(e.target.id==='katModal') katModalKapat();
+}
+
+function yeniKatEkle(){
+  const inp = document.getElementById('yeniKatInp');
+  const ad = inp.value.trim();
+  if(!ad) return;
+  if(kategoriler.includes(ad)){ alert('Bu kategori zaten var!'); return; }
+  kategoriler.push(ad);
+  syncYaz('ar_kategoriler', kategoriler);
+  inp.value = '';
+  renderKatYonetimListe();
+}
+
+function katSil(k){
+  if(!confirm('"'+k+'" kategorisini sil?')) return;
+  kategoriler = kategoriler.filter(x=>x!==k);
+  kartlar.forEach(c=>{ if(c.kategori===k) c.kategori=''; });
+  syncYaz('ar_kategoriler', kategoriler);
+  syncYaz('ar_kartlar', kartlar);
+  renderKatYonetimListe();
+}
+
+function renderKatYonetimListe(){
+  const div = document.getElementById('katYonetimListe');
+  if(!kategoriler.length){ div.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px;">Kategori yok</div>'; return; }
+  div.innerHTML = kategoriler.map(k=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+      <span style="font-size:13px;">🏷️ ${escH(k)}</span>
+      <button class="btn btn-del" style="padding:3px 10px;font-size:11px;" onclick="katSil('${escH(k)}')">🗑 Sil</button>
+    </div>`).join('');
+}
+
+// ════════════ YARDIMCI ════════════
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ════════════ INIT ════════════
+renderKatBar();
+renderKartlar();
+syncYukle();
+</script>
+</body>
+</html>
