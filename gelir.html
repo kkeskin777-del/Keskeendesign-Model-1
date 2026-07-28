@@ -516,7 +516,10 @@ function syncDurum(tip, mesaj) {
 
 function syncYaz(key, value) {
   localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+  const ts = Date.now();
+  localStorage.setItem('_ts_' + key, String(ts));
   _syncQueue[key] = value;
+  _syncQueue['_ts_' + key] = ts;
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(syncGonder, 1500);
   syncDurum('bekle', 'Kaydediliyor...');
@@ -544,6 +547,18 @@ async function syncGonder() {
   _syncing = false;
 }
 
+// Sekme kapanırken/arka plana alınırken kuyrukta bekleyen veriyi son bir kez göndermeyi dener (fetch tamamlanmayabilir ama sendBeacon garanti eder)
+function flushSyncBeacon() {
+  if(Object.keys(_syncQueue).length === 0) return;
+  const batch = Object.entries(_syncQueue).map(([key, value]) => ({key, value}));
+  try {
+    navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify({batch})], {type:'text/plain'}));
+  } catch(e) {}
+}
+window.addEventListener('pagehide', flushSyncBeacon);
+window.addEventListener('beforeunload', flushSyncBeacon);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushSyncBeacon(); });
+
 async function syncYukle() {
   syncDurum('mesgul', 'Yükleniyor...');
   try {
@@ -551,12 +566,38 @@ async function syncYukle() {
     const d = await r.json();
     if(!d.ok || !d.value) { syncDurum('ok', '☁️ Bağlı'); return; }
     const all = d.value;
-    if(all['mt_gelir'] != null) { gelirler = all['mt_gelir']; localStorage.setItem('mt_gelir', JSON.stringify(gelirler)); }
-    if(all['mt_gider'] != null) { giderler = all['mt_gider']; localStorage.setItem('mt_gider', JSON.stringify(giderler)); }
+
+    // Yardımcı: yerel ts vs GAS ts karşılaştır — yenisi kazanır (fiyat.html ile aynı mantık)
+    function yukleEger(key, atama) {
+      if(all[key] == null) return;
+      const localTs = parseInt(localStorage.getItem('_ts_' + key) || '0');
+      const gasTs   = parseInt(all['_ts_' + key] || '0');
+      if(localTs > gasTs) {
+        // Yerel daha yeni → koru ve GAS'a yeniden gönder
+        const localVal = localStorage.getItem(key);
+        if(localVal != null) {
+          _syncQueue[key] = JSON.parse(localVal);
+          _syncQueue['_ts_' + key] = localTs;
+          clearTimeout(_syncTimer);
+          _syncTimer = setTimeout(syncGonder, 2000);
+        }
+        return;
+      }
+      atama(all[key]);
+      localStorage.setItem(key, JSON.stringify(all[key]));
+      if(gasTs > 0) localStorage.setItem('_ts_' + key, String(gasTs));
+    }
+
+    yukleEger('mt_gelir',            v => gelirler         = v);
+    yukleEger('mt_gider',            v => giderler         = v);
+    yukleEger('mt_gider_kategoriler',v => giderKategoriler = v);
+
     yillariGuncelle();
     renderOzet();
     renderGelirList();
     renderGiderList();
+    renderKatYonetim && renderKatYonetim();
+    renderKatFiltreler && renderKatFiltreler();
     syncDurum('ok', '☁️ Bağlı');
   } catch(e) {
     syncDurum('hata', '⚠️ Çevrimdışı — yerel veri');
@@ -569,7 +610,7 @@ function kaydetGider(){ syncYaz('mt_gider', giderler); }
 // ══════════════════════════════════════════
 // KATEGORİ YÖNETİMİ
 // ══════════════════════════════════════════
-function katKaydet(){ localStorage.setItem('mt_gider_kategoriler', JSON.stringify(giderKategoriler)); }
+function katKaydet(){ syncYaz('mt_gider_kategoriler', giderKategoriler); }
 
 function katEkle(){
   const inp = document.getElementById('katYeniInput');

@@ -1063,6 +1063,18 @@ async function syncGonder() {
   _syncing = false;
 }
 
+// Sekme kapanırken/arka plana alınırken kuyrukta bekleyen veriyi son bir kez göndermeyi dener
+function flushSyncBeacon() {
+  if(Object.keys(_syncQueue).length === 0) return;
+  const batch = Object.entries(_syncQueue).map(([key, value]) => ({key, value}));
+  try {
+    navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify({batch})], {type:'text/plain'}));
+  } catch(e) {}
+}
+window.addEventListener('pagehide', flushSyncBeacon);
+window.addEventListener('beforeunload', flushSyncBeacon);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushSyncBeacon(); });
+
 async function syncYukle() {
   syncDurum('mesgul', 'Yükleniyor...');
   try {
