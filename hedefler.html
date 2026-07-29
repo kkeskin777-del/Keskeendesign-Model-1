@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hedefler — Ciro Takibi</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:     #0a1520;
+  --bg2:    #0a1520;
+  --surface:#0d1f30;
+  --surface2:#0d2535;
+  --border: rgba(251,191,36,.07);
+  --border2:rgba(251,191,36,.12);
+  --text:   #e0f4ff;
+  --muted:  #5a8fa8;
+  --income: #00ff9d;
+  --expense:#ff6b6b;
+  --gold:   #ffd93d;
+  --purple: #c77dff;
+  --blue:   #4cc9f0;
+  --grad-gold:linear-gradient(135deg,#ffd93d,#ff9f1c);
+  --grad-blue:linear-gradient(135deg,#4cc9f0,#4361ee);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;}
+
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 24px 0;position:sticky;top:0;z-index:100;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+.logo{font-family:'Libre Baskerville',serif;font-weight:800;font-size:22px;letter-spacing:-.5px;}
+.logo span{background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo em{font-style:normal;color:var(--muted);font-weight:400;font-size:13px;margin-left:8px;}
+
+#syncBar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 10px;font-size:11px;color:#7878a0;}
+#syncDot{width:7px;height:7px;border-radius:50%;background:#7878a0;flex-shrink:0;transition:background .4s;}
+
+.tabs{display:flex;gap:4px;margin-top:12px;}
+.tb{padding:10px 20px;border-radius:10px 10px 0 0;font-weight:600;font-size:13px;border:1px solid transparent;border-bottom:none;cursor:pointer;background:transparent;color:var(--muted);transition:all .18s;}
+.tb:hover{color:var(--text);background:var(--surface);}
+.tb.active{background:var(--surface);color:var(--text);border-color:var(--border);}
+
+.wrap{max-width:820px;margin:0 auto;padding:24px 20px 0;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px;}
+.ctitle{font-family:'Libre Baskerville',serif;font-weight:700;font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:9px;}
+
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+.fg input,.fg select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Nunito',sans-serif;font-size:13px;width:100%;}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--purple);}
+
+.hedef-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;}
+@media(max-width:640px){.hedef-grid{grid-template-columns:1fr 1fr;}.hedef-grid .btn{grid-column:1/-1;}}
+
+.btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:9px 16px;font-family:'Nunito',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.btn:hover{filter:brightness(1.15);}
+.btn-gold{background:rgba(255,217,61,.12);color:var(--gold);border-color:rgba(255,217,61,.3);}
+.btn-gold:hover{background:rgba(255,217,61,.2);}
+
+.period-label{font-family:'Libre Baskerville',serif;font-weight:700;font-size:17px;margin-bottom:4px;}
+.period-sub{font-size:12px;color:var(--muted);margin-bottom:18px;}
+
+.stack-bar{position:relative;height:34px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.stack-fill{height:100%;position:absolute;top:0;left:0;transition:width .5s ease;}
+.stack-tamam{background:var(--grad-gold);border-radius:10px 0 0 10px;z-index:2;}
+.stack-aktif{background:repeating-linear-gradient(45deg,rgba(255,217,61,.35),rgba(255,217,61,.35) 6px,rgba(255,217,61,.18) 6px,rgba(255,217,61,.18) 12px);z-index:1;}
+.stack-target-line{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.5;z-index:3;}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:14px;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+.legend .i-tamam{background:var(--grad-gold);}
+.legend .i-aktif{background:repeating-linear-gradient(45deg,rgba(255,217,61,.5),rgba(255,217,61,.5) 4px,rgba(255,217,61,.25) 4px,rgba(255,217,61,.25) 8px);}
+
+.numbers{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:14px;}
+.num-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.num-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.num-val{font-weight:800;font-size:18px;}
+.num-val.gold{color:var(--gold);}
+.num-val.exp{color:var(--expense);}
+.num-val.blue{color:var(--blue);}
+.num-val.muted{color:var(--muted);font-size:14px;}
+
+.oneri-box{display:flex;gap:12px;align-items:flex-start;background:rgba(76,201,240,.06);border:1px solid rgba(76,201,240,.18);border-radius:12px;padding:16px 18px;}
+.oneri-ico{font-size:24px;flex-shrink:0;}
+.oneri-txt{font-size:13.5px;line-height:1.6;}
+
+table.trend{width:100%;border-collapse:collapse;font-size:13px;}
+table.trend th{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);}
+table.trend td{padding:10px;border-bottom:1px solid var(--border);}
+table.trend tr:last-child td{border-bottom:none;}
+table.trend .mn{font-weight:600;}
+table.trend .pos{color:var(--gold);font-weight:700;}
+table.trend .cur{background:rgba(255,217,61,.04);}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 20px;font-size:13px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:9999;transition:opacity .3s;pointer-events:none;white-space:nowrap;opacity:0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap" style="padding:0;">
+    <div class="hdr-top">
+      <div class="logo"><span>Hedefler</span><em>Ciro Takibi</em></div>
+      <div id="syncBar"><span id="syncDot"></span><span id="syncLbl">Yükleniyor...</span></div>
+    </div>
+    <div class="tabs">
+      <div class="tb active" data-tip="hafta" onclick="sekmeSec('hafta')">Haftalık</div>
+      <div class="tb" data-tip="ay" onclick="sekmeSec('ay')">Aylık</div>
+      <div class="tb" data-tip="yil" onclick="sekmeSec('yil')">Yıllık</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="ctitle">🎯 Hedeflerim</div>
+    <div class="hedef-grid">
+      <div class="fg"><label>Haftalık hedef (TL)</label><input type="number" id="hedefHafta" placeholder="örn. 5000"></div>
+      <div class="fg"><label>Aylık hedef (TL)</label><input type="number" id="hedefAy" placeholder="örn. 20000"></div>
+      <div class="fg"><label>Yıllık hedef (TL)</label><input type="number" id="hedefYil" placeholder="örn. 240000"></div>
+      <button class="btn btn-gold" onclick="hedefKaydet()">💾 Kaydet</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="period-label" id="donemBaslik">—</div>
+    <div class="period-sub" id="donemAlt">—</div>
+
+    <div class="stack-bar">
+      <div class="stack-fill stack-tamam" id="barTamam" style="width:0%"></div>
+      <div class="stack-fill stack-aktif" id="barAktif" style="width:0%"></div>
+    </div>
+    <div class="legend">
+      <span><i class="i-tamam"></i> Tamamlanan siparişler</span>
+      <span><i class="i-aktif"></i> Aktif (üretim/hazır/gönderildi)</span>
+    </div>
+
+    <div class="numbers">
+      <div class="num-box"><div class="num-lbl">Tamamlanan</div><div class="num-val gold" id="valTamam">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Aktif</div><div class="num-val muted" id="valAktif">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Toplam Ciro</div><div class="num-val gold" id="valToplam">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Hedef</div><div class="num-val muted" id="valHedef">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Reklam Harcaması</div><div class="num-val exp" id="valReklam">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Reklam / Ciro Oranı</div><div class="num-val blue" id="valOran">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">💡 Öneri</div>
+    <div class="oneri-box">
+      <div class="oneri-ico" id="oneriIco">ℹ️</div>
+      <div class="oneri-txt" id="oneriTxt">Hesaplanıyor...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">📊 Geçmiş Dönemler</div>
+    <table class="trend">
+      <thead><tr><th>Dönem</th><th>Ciro</th><th>Hedef</th><th>%</th><th>Reklam</th></tr></thead>
+      <tbody id="trendBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════ GOOGLE SHEETS SYNC ════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxHYvhXt8Z7Hzypqvj22l4d9q8DGqnB9UvHrZZzHyVt_tDx-GDi69hW6ALyWDsZ1K54/exec';
+let _syncTimer = null;
+let _syncQueue = {};
+let _syncing   = false;
+
+let hedefler   = JSON.parse(localStorage.getItem('hd_hedefler')     || 'null') || {hafta:0, ay:0, yil:0};
+let siparisler = JSON.parse(localStorage.getItem('hd_cache_siparis')|| '[]');
+let giderler   = JSON.parse(localStorage.getItem('hd_cache_gider')  || '[]');
+let aktifTip   = 'hafta';
+
+function syncDurum(tip, mesaj){
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLbl');
+  if(!dot || !lbl) return;
+  const renkler = {ok:'#3dd68c', hata:'#ff6b6b', bekle:'#ffd93d', mesgul:'#4d96ff'};
+  dot.style.background = renkler[tip] || '#7878a0';
+  lbl.textContent = mesaj;
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = 1;
+  clearTimeout(t._h); t._h = setTimeout(()=>t.style.opacity=0, 2200);
+}
+
+function syncYaz(key, value){
+  localStorage.setItem(key, JSON.stringify(value));
+  const ts = Date.now();
+  localStorage.setItem('_ts_' + key, String(ts));
+  _syncQueue[key] = value;
+  _syncQueue['_ts_' + key] = ts;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncGonder, 1500);
+  syncDurum('bekle', 'Kaydediliyor...');
+}
+
+async function syncGonder(){
+  if(_syncing || !Object.keys(_syncQueue).length) return;
+  const kuyruk = {..._syncQueue}; _syncQueue = {}; _syncing = true;
+  syncDurum('mesgul', 'Senkronize ediliyor...');
+  try{
+    const batch = Object.entries(kuyruk).map(([key,value])=>({key,value}));
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({batch})});
+    syncDurum('ok', '☁️ Senkronize');
+  }catch(e){
+    syncDurum('hata', '⚠️ Bağlantı hatası');
+    Object.assign(_syncQueue, kuyruk);
+  }
+  _syncing = false;
+}
+
+function flushSyncBeacon(){
+  if(!Object.keys(_syncQueue).length) return;
+  const batch = Object.entries(_syncQueue).map(([key,value])=>({key,value}));
+  try{ navigator.sendBeacon(GAS_URL, new Blob([JSON.stringify({batch})], {type:'text/plain'})); }catch(e){}
+}
+window.addEventListener('pagehide', flushSyncBeacon);
+window.addEventListener('beforeunload', flushSyncBeacon);
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushSyncBeacon(); });
+
+async function syncYukle(){
+  syncDurum('mesgul', 'Yükleniyor...');
+  try{
+    const r = await fetch(`${GAS_URL}?action=getall`);
+    const d = await r.json();
+    if(!d.ok || !d.value){ syncDurum('ok', '☁️ Bağlı'); return; }
+    const all = d.value;
+
+    // hd_hedefler — kendi verimiz, zaman damgalı çakışma koruması
+    if(all['hd_hedefler'] != null){
+      const localTs = parseInt(localStorage.getItem('_ts_hd_hedefler') || '0');
+      const gasTs   = parseInt(all['_ts_hd_hedefler'] || '0');
+      if(localTs > gasTs){
+        _syncQueue['hd_hedefler'] = hedefler;
+        _syncQueue['_ts_hd_hedefler'] = localTs;
+        clearTimeout(_syncTimer); _syncTimer = setTimeout(syncGonder, 2000);
+      } else {
+        hedefler = all['hd_hedefler'];
+        localStorage.setItem('hd_hedefler', JSON.stringify(hedefler));
+        if(gasTs > 0) localStorage.setItem('_ts_hd_hedefler', String(gasTs));
+      }
+    }
+
+    // fhp_siparis / mt_gider — başka uygulamaların verisi, salt okunur, sadece önbelleğe al
+    if(all['fhp_siparis'] != null){
+      siparisler = all['fhp_siparis'];
+      localStorage.setItem('hd_cache_siparis', JSON.stringify(siparisler));
+    }
+    if(all['mt_gider'] != null){
+      giderler = all['mt_gider'];
+      localStorage.setItem('hd_cache_gider', JSON.stringify(giderler));
+    }
+
+    syncDurum('ok', '☁️ Bağlı');
+    renderAll();
+  }catch(e){
+    syncDurum('hata', '⚠️ Çevrimdışı — yerel veri');
+    renderAll();
+  }
+}
+
+// ════════════ HEDEF FORMU ════════════
+function hedefInputDoldur(){
+  document.getElementById('hedefHafta').value = hedefler.hafta || '';
+  document.getElementById('hedefAy').value    = hedefler.ay    || '';
+  document.getElementById('hedefYil').value   = hedefler.yil   || '';
+}
+
+function hedefKaydet(){
+  hedefler = {
+    hafta: parseFloat(document.getElementById('hedefHafta').value) || 0,
+    ay:    parseFloat(document.getElementById('hedefAy').value)    || 0,
+    yil:   parseFloat(document.getElementById('hedefYil').value)   || 0
+  };
+  syncYaz('hd_hedefler', hedefler);
+  toast('✅ Hedefler kaydedildi');
+  renderAll();
+}
+
+// ════════════ DÖNEM HESAPLARI ════════════
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+
+function haftaAralik(d){
+  const gun = (d.getDay()+6)%7; // 0=Pazartesi
+  const start = new Date(d); start.setHours(0,0,0,0); start.setDate(d.getDate()-gun);
+  const end = new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
+  return {start, end};
+}
+function ayAralik(d){
+  const start = new Date(d.getFullYear(), d.getMonth(), 1, 0,0,0,0);
+  const end   = new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999);
+  return {start, end};
+}
+function yilAralik(d){
+  const start = new Date(d.getFullYear(), 0, 1, 0,0,0,0);
+  const end   = new Date(d.getFullYear(), 11, 31, 23,59,59,999);
+  return {start, end};
+}
+
+function donemAralik(tip, offset){
+  const now = new Date();
+  if(tip === 'hafta'){ const ref = new Date(now); ref.setDate(now.getDate() + 7*offset); return haftaAralik(ref); }
+  if(tip === 'ay')    { const ref = new Date(now.getFullYear(), now.getMonth()+offset, 15); return ayAralik(ref); }
+  const ref = new Date(now.getFullYear()+offset, now.getMonth(), 15); return yilAralik(ref);
+}
+
+const AY_KISA = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+const AY_UZUN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function donemEtiket(tip, range){
+  if(tip === 'hafta'){
+    return range.start.getDate()+' '+AY_KISA[range.start.getMonth()]+' – '+range.end.getDate()+' '+AY_KISA[range.end.getMonth()]+' '+range.end.getFullYear();
+  }
+  if(tip === 'ay') return AY_UZUN[range.start.getMonth()]+' '+range.start.getFullYear();
+  return String(range.start.getFullYear());
+}
+
+function tarihIcinde(tarihStr, range){
+  if(!tarihStr) return false;
+  const t = new Date(tarihStr + 'T12:00:00');
+  return t >= range.start && t <= range.end;
+}
+
+function siparisToplamlari(range){
+  let tamam = 0, aktif = 0;
+  siparisler.forEach(s=>{
+    if(!tarihIcinde(s.tarih, range)) return;
+    const tutar = (s.fiyat||0) * (s.adet||1);
+    if(s.durum === 'tamamlandi') tamam += tutar;
+    else if(['uretim','hazir','gonderildi'].includes(s.durum)) aktif += tutar;
+  });
+  return {tamam, aktif, toplam: tamam+aktif};
+}
+
+function reklamToplami(range){
+  let t = 0;
+  giderler.forEach(g=>{ if(g.kategori === 'Reklam' && tarihIcinde(g.tarih, range)) t += (g.dahil||0); });
+  return t;
+}
+
+function fmt(n){ return Math.round(n||0).toLocaleString('tr-TR') + ' TL'; }
+
+// ════════════ ÖNERİ MOTORU ════════════
+function oneriHesapla(hedef, toplamCiro, reklamHarcama, range){
+  const now = new Date();
+  const gunToplam = Math.round((range.end - range.start) / 86400000) + 1;
+  let gunGecen;
+  if(now < range.start) gunGecen = 0;
+  else if(now > range.end) gunGecen = gunToplam;
+  else gunGecen = Math.floor((now - range.start) / 86400000) + 1;
+
+  if(!hedef || hedef <= 0){
+    return {ico:'ℹ️', txt:'Önce yukarıdan bu dönem için bir hedef belirle, öneri burada görünecek.'};
+  }
+
+  const kalanTutar = hedef - toplamCiro;
+
+  if(kalanTutar <= 0){
+    return {ico:'🎉', txt:`Hedefi tuttun — ${fmt(toplamCiro-hedef)} fazlasıyla geçtin. Reklam bütçeni mevcut düzeyde tutabilir ya da biraz azaltabilirsin.`};
+  }
+  if(gunGecen >= gunToplam){
+    return {ico:'⚠️', txt:`Dönem sona erdi ve hedefe ${fmt(kalanTutar)} kala kaldın. Bir sonraki dönemde reklam bütçesini artırmayı düşünebilirsin.`};
+  }
+
+  const kalanGun = gunToplam - gunGecen;
+  const elapsedFrac  = gunGecen / gunToplam;
+  const achievedFrac = toplamCiro / hedef;
+  const tempo = elapsedFrac > 0 ? achievedFrac / elapsedFrac : 1;
+  const gunlukGerekli = kalanTutar / kalanGun;
+
+  let onerilenReklam = null;
+  if(reklamHarcama > 0 && toplamCiro > 0){
+    const verim = toplamCiro / reklamHarcama; // 1 TL reklama karşılık kaç TL ciro
+    if(isFinite(verim) && verim > 0) onerilenReklam = kalanTutar / verim;
+  }
+
+  if(tempo >= 1.05){
+    return {ico:'📈', txt:`İyi gidiyorsun — mevcut tempoyla hedefi rahatça geçebilirsin. Reklam bütçeni aynı seviyede tutman yeterli.`};
+  }
+  if(tempo >= 0.85){
+    const ek = onerilenReklam ? ` Bu dönemki verimliliğine göre kalan süre için toplam ~${fmt(onerilenReklam)} ek reklam harcaman hedefe ulaşmana yardımcı olabilir.` : '';
+    return {ico:'👍', txt:`Tam tempodasın. Hedefe ${fmt(kalanTutar)} kaldı, ${kalanGun} gün var (günlük ortalama ~${fmt(gunlukGerekli)}).${ek}`};
+  }
+  const ek = onerilenReklam
+    ? ` Bu dönemki verimliliğine göre (${fmt(toplamCiro)} ciro / ${fmt(reklamHarcama)} reklam) kalan süre için toplam ~${fmt(onerilenReklam)} reklam harcaman hedefe ulaşmana yardımcı olabilir.`
+    : ` Henüz bu dönem reklam verisi yok — bir miktar reklam bütçesi ayırıp sonucunu izlemeni öneririm.`;
+  return {ico:'🔺', txt:`Hedefin gerisindesin — kalan ${kalanGun} günde ${fmt(kalanTutar)} ciroya (günlük ortalama ~${fmt(gunlukGerekli)}) ihtiyacın var.${ek}`};
+}
+
+// ════════════ RENDER ════════════
+function sekmeSec(tip){
+  aktifTip = tip;
+  document.querySelectorAll('.tb').forEach(el => el.classList.toggle('active', el.dataset.tip === tip));
+  renderAll();
+}
+
+function renderAll(){
+  hedefInputDoldur();
+
+  const range = donemAralik(aktifTip, 0);
+  const {tamam, aktif, toplam} = siparisToplamlari(range);
+  const reklam = reklamToplami(range);
+  const hedef = hedefler[aktifTip] || 0;
+
+  document.getElementById('donemBaslik').textContent = donemEtiket(aktifTip, range);
+  document.getElementById('donemAlt').textContent = {hafta:'Bu haftanın durumu', ay:'Bu ayın durumu', yil:'Bu yılın durumu'}[aktifTip];
+
+  const percTamam = hedef > 0 ? Math.min(tamam/hedef*100, 100) : 0;
+  const percAktif = hedef > 0 ? Math.min(aktif/hedef*100, 100-percTamam) : 0;
+  document.getElementById('barTamam').style.width = percTamam + '%';
+  document.getElementById('barAktif').style.width = percAktif + '%';
+  document.getElementById('barAktif').style.left = percTamam + '%';
+
+  document.getElementById('valTamam').textContent  = fmt(tamam);
+  document.getElementById('valAktif').textContent  = fmt(aktif);
+  document.getElementById('valToplam').textContent = fmt(toplam);
+  document.getElementById('valHedef').textContent  = hedef>0 ? fmt(hedef) : 'Belirlenmedi';
+  document.getElementById('valReklam').textContent = fmt(reklam);
+  document.getElementById('valOran').textContent   = toplam>0 ? Math.round(reklam/toplam*100)+'%' : '—';
+
+  const oneri = oneriHesapla(hedef, toplam, reklam, range);
+  document.getElementById('oneriIco').textContent = oneri.ico;
+  document.getElementById('oneriTxt').textContent = oneri.txt;
+
+  renderTrend();
+}
+
+function renderTrend(){
+  const tbody = document.getElementById('trendBody');
+  let html = '';
+  for(let off = 0; off >= -5; off--){
+    const range = donemAralik(aktifTip, off);
+    const {toplam} = siparisToplamlari(range);
+    const reklam = reklamToplami(range);
+    const hedef = hedefler[aktifTip] || 0;
+    const yuzde = hedef > 0 ? Math.round(toplam/hedef*100) : null;
+    html += `<tr class="${off===0?'cur':''}">
+      <td class="mn">${donemEtiket(aktifTip, range)}${off===0?' (güncel)':''}</td>
+      <td>${fmt(toplam)}</td>
+      <td>${hedef>0?fmt(hedef):'—'}</td>
+      <td class="${yuzde!==null&&yuzde>=100?'pos':''}">${yuzde!==null?yuzde+'%':'—'}</td>
+      <td>${fmt(reklam)}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+// ════════════ BAŞLAT ════════════
+renderAll();
+setTimeout(syncYukle, 500);
+</script>
+</body>
+</html>
