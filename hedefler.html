@@ -50,7 +50,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:18px 
 .fg input,.fg select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:9px 12px;font-family:'Nunito',sans-serif;font-size:13px;width:100%;}
 .fg input:focus,.fg select:focus{outline:none;border-color:var(--purple);}
 
-.hedef-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;}
+.hedef-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
 @media(max-width:640px){.hedef-grid{grid-template-columns:1fr 1fr;}.hedef-grid .btn{grid-column:1/-1;}}
 
 .btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:9px 16px;font-family:'Nunito',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;white-space:nowrap;}
@@ -106,8 +106,7 @@ table.trend .cur{background:rgba(255,217,61,.04);}
       <div id="syncBar"><span id="syncDot"></span><span id="syncLbl">Yükleniyor...</span></div>
     </div>
     <div class="tabs">
-      <div class="tb active" data-tip="hafta" onclick="sekmeSec('hafta')">Haftalık</div>
-      <div class="tb" data-tip="ay" onclick="sekmeSec('ay')">Aylık</div>
+      <div class="tb active" data-tip="ay" onclick="sekmeSec('ay')">Aylık</div>
       <div class="tb" data-tip="yil" onclick="sekmeSec('yil')">Yıllık</div>
     </div>
   </div>
@@ -118,9 +117,8 @@ table.trend .cur{background:rgba(255,217,61,.04);}
   <div class="card">
     <div class="ctitle">🎯 Hedeflerim</div>
     <div class="hedef-grid">
-      <div class="fg"><label>Haftalık hedef (TL)</label><input type="number" id="hedefHafta" placeholder="örn. 5000"></div>
-      <div class="fg"><label>Aylık hedef (TL)</label><input type="number" id="hedefAy" placeholder="örn. 20000"></div>
-      <div class="fg"><label>Yıllık hedef (TL)</label><input type="number" id="hedefYil" placeholder="örn. 240000"></div>
+      <div class="fg"><label>Aylık ciro hedefi (TL)</label><input type="number" id="hedefAy" placeholder="örn. 20000"></div>
+      <div class="fg"><label>Yıllık ciro hedefi (TL)</label><input type="number" id="hedefYil" placeholder="örn. 240000"></div>
       <button class="btn btn-gold" onclick="hedefKaydet()">💾 Kaydet</button>
     </div>
   </div>
@@ -146,6 +144,17 @@ table.trend .cur{background:rgba(255,217,61,.04);}
       <div class="num-box"><div class="num-lbl">Reklam Harcaması</div><div class="num-val exp" id="valReklam">0 TL</div></div>
       <div class="num-box"><div class="num-lbl">Reklam / Ciro Oranı</div><div class="num-val blue" id="valOran">—</div></div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">📈 Net Kârlılık</div>
+    <div class="numbers">
+      <div class="num-box"><div class="num-lbl">Gerçekleşen Gelir</div><div class="num-val gold" id="valNetGelir">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Toplam Gider (hammadde+kargo+reklam vs.)</div><div class="num-val exp" id="valNetGider">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Net Kâr</div><div class="num-val" id="valNetKar">0 TL</div></div>
+      <div class="num-box"><div class="num-lbl">Kârlılık Oranı</div><div class="num-val blue" id="valKarOran">—</div></div>
+    </div>
+    <div class="period-sub" style="margin-top:12px;margin-bottom:0;">Bu tablo gelir.html'deki "Gelir Gider" verisiyle aynı kaynağı kullanır — tüm gider kategorilerini (hammadde, kargo, reklam, epoksi, yağ/vernik vb.) kapsar.</div>
   </div>
 
   <div class="card">
@@ -175,10 +184,11 @@ let _syncTimer = null;
 let _syncQueue = {};
 let _syncing   = false;
 
-let hedefler   = JSON.parse(localStorage.getItem('hd_hedefler')     || 'null') || {hafta:0, ay:0, yil:0};
+let hedefler   = JSON.parse(localStorage.getItem('hd_hedefler')     || 'null') || {ay:0, yil:0};
 let siparisler = JSON.parse(localStorage.getItem('hd_cache_siparis')|| '[]');
 let giderler   = JSON.parse(localStorage.getItem('hd_cache_gider')  || '[]');
-let aktifTip   = 'hafta';
+let gelirler   = JSON.parse(localStorage.getItem('hd_cache_gelir')  || '[]');
+let aktifTip   = 'ay';
 
 function syncDurum(tip, mesaj){
   const dot = document.getElementById('syncDot');
@@ -262,6 +272,10 @@ async function syncYukle(){
       giderler = all['mt_gider'];
       localStorage.setItem('hd_cache_gider', JSON.stringify(giderler));
     }
+    if(all['mt_gelir'] != null){
+      gelirler = all['mt_gelir'];
+      localStorage.setItem('hd_cache_gelir', JSON.stringify(gelirler));
+    }
 
     syncDurum('ok', '☁️ Bağlı');
     renderAll();
@@ -273,16 +287,14 @@ async function syncYukle(){
 
 // ════════════ HEDEF FORMU ════════════
 function hedefInputDoldur(){
-  document.getElementById('hedefHafta').value = hedefler.hafta || '';
-  document.getElementById('hedefAy').value    = hedefler.ay    || '';
-  document.getElementById('hedefYil').value   = hedefler.yil   || '';
+  document.getElementById('hedefAy').value  = hedefler.ay  || '';
+  document.getElementById('hedefYil').value = hedefler.yil || '';
 }
 
 function hedefKaydet(){
   hedefler = {
-    hafta: parseFloat(document.getElementById('hedefHafta').value) || 0,
-    ay:    parseFloat(document.getElementById('hedefAy').value)    || 0,
-    yil:   parseFloat(document.getElementById('hedefYil').value)   || 0
+    ay:  parseFloat(document.getElementById('hedefAy').value)  || 0,
+    yil: parseFloat(document.getElementById('hedefYil').value) || 0
   };
   syncYaz('hd_hedefler', hedefler);
   toast('✅ Hedefler kaydedildi');
@@ -292,12 +304,6 @@ function hedefKaydet(){
 // ════════════ DÖNEM HESAPLARI ════════════
 function pad(n){ return n<10 ? '0'+n : ''+n; }
 
-function haftaAralik(d){
-  const gun = (d.getDay()+6)%7; // 0=Pazartesi
-  const start = new Date(d); start.setHours(0,0,0,0); start.setDate(d.getDate()-gun);
-  const end = new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
-  return {start, end};
-}
 function ayAralik(d){
   const start = new Date(d.getFullYear(), d.getMonth(), 1, 0,0,0,0);
   const end   = new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999);
@@ -311,8 +317,7 @@ function yilAralik(d){
 
 function donemAralik(tip, offset){
   const now = new Date();
-  if(tip === 'hafta'){ const ref = new Date(now); ref.setDate(now.getDate() + 7*offset); return haftaAralik(ref); }
-  if(tip === 'ay')    { const ref = new Date(now.getFullYear(), now.getMonth()+offset, 15); return ayAralik(ref); }
+  if(tip === 'ay') { const ref = new Date(now.getFullYear(), now.getMonth()+offset, 15); return ayAralik(ref); }
   const ref = new Date(now.getFullYear()+offset, now.getMonth(), 15); return yilAralik(ref);
 }
 
@@ -320,9 +325,6 @@ const AY_KISA = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','
 const AY_UZUN = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function donemEtiket(tip, range){
-  if(tip === 'hafta'){
-    return range.start.getDate()+' '+AY_KISA[range.start.getMonth()]+' – '+range.end.getDate()+' '+AY_KISA[range.end.getMonth()]+' '+range.end.getFullYear();
-  }
   if(tip === 'ay') return AY_UZUN[range.start.getMonth()]+' '+range.start.getFullYear();
   return String(range.start.getFullYear());
 }
@@ -347,6 +349,18 @@ function siparisToplamlari(range){
 function reklamToplami(range){
   let t = 0;
   giderler.forEach(g=>{ if(g.kategori === 'Reklam' && tarihIcinde(g.tarih, range)) t += (g.dahil||0); });
+  return t;
+}
+
+// Net kârlılık: gelir.html'deki "Net Kâr" ile aynı mantık (gerçekleşen gelir − tüm giderler)
+function gelirToplami(range){
+  let t = 0;
+  gelirler.forEach(g=>{ if(tarihIcinde(g.tarih, range)) t += (g.dahil||0); });
+  return t;
+}
+function giderTumToplam(range){
+  let t = 0;
+  giderler.forEach(g=>{ if(tarihIcinde(g.tarih, range)) t += (g.dahil||0); });
   return t;
 }
 
@@ -415,7 +429,7 @@ function renderAll(){
   const hedef = hedefler[aktifTip] || 0;
 
   document.getElementById('donemBaslik').textContent = donemEtiket(aktifTip, range);
-  document.getElementById('donemAlt').textContent = {hafta:'Bu haftanın durumu', ay:'Bu ayın durumu', yil:'Bu yılın durumu'}[aktifTip];
+  document.getElementById('donemAlt').textContent = {ay:'Bu ayın durumu', yil:'Bu yılın durumu'}[aktifTip];
 
   const percTamam = hedef > 0 ? Math.min(tamam/hedef*100, 100) : 0;
   const percAktif = hedef > 0 ? Math.min(aktif/hedef*100, 100-percTamam) : 0;
@@ -429,6 +443,16 @@ function renderAll(){
   document.getElementById('valHedef').textContent  = hedef>0 ? fmt(hedef) : 'Belirlenmedi';
   document.getElementById('valReklam').textContent = fmt(reklam);
   document.getElementById('valOran').textContent   = toplam>0 ? Math.round(reklam/toplam*100)+'%' : '—';
+
+  const netGelir = gelirToplami(range);
+  const netGider = giderTumToplam(range);
+  const netKar   = netGelir - netGider;
+  document.getElementById('valNetGelir').textContent = fmt(netGelir);
+  document.getElementById('valNetGider').textContent  = fmt(netGider);
+  const netKarEl = document.getElementById('valNetKar');
+  netKarEl.textContent = (netKar>=0?'+':'') + fmt(netKar);
+  netKarEl.className = 'num-val ' + (netKar>=0 ? 'gold' : 'exp');
+  document.getElementById('valKarOran').textContent = netGelir>0 ? Math.round(netKar/netGelir*100)+'%' : '—';
 
   const oneri = oneriHesapla(hedef, toplam, reklam, range);
   document.getElementById('oneriIco').textContent = oneri.ico;

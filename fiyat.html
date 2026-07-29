@@ -567,7 +567,6 @@
       <button class="tb"        onclick="sw('sabit',this)">⚙️ Genel Giderler</button>
       <button class="tb tb-urunler" onclick="sw('urunler',this)">📦 Ürünlerim</button>
       <button class="tb" onclick="sw('siparis',this)">📋 Siparişler</button>
-      <button class="tb" onclick="sw('reklam',this)">📣 Reklam Analiz</button>
     </div>
   </div>
 </header>
@@ -840,10 +839,6 @@
   </div>
 </div>
 
-<!-- ═══════════ REKLAM ANALİZ ═══════════ -->
-<div id="tab-reklam" class="tab">
-</div>
-
 </div>
 
 <!-- ÖZET POPUP -->
@@ -980,7 +975,6 @@ const BASLANGIC_PLAT = [
 ];
 
 let savedProds  = JSON.parse(localStorage.getItem('fhp_urunler')  || '[]');
-let reklamVeriler = JSON.parse(localStorage.getItem('fhp_reklam') || '[]');
 let kategoriler = JSON.parse(localStorage.getItem('fhp_kategoriler') || '[]');
 let aktifKategori = '';
 let sabitList   = JSON.parse(localStorage.getItem('fhp_sabit')    || '[]');
@@ -1152,7 +1146,6 @@ async function syncYukle() {
     yukleEger('fhp_verim',       v => verimAyarlar       = v);
     yukleEger('fhp_siparis',     v => siparisler         = v);
     yukleEger('fhp_dis_urunler', v => disUrunListesi     = v);
-    yukleEger('fhp_reklam',      v => reklamVeriler      = v);
     yukleEger('fhp_stok_analiz', v => stokAnalizKayitlar = v);
     yukleEger('fhp_opt_analiz',  v => optAnalizKayitlar  = v);
 
@@ -1168,7 +1161,6 @@ async function syncYukle() {
     }
 
     renderSabit(); renderDisUrunListesi(); renderHammadde(); renderPlatList(); renderSaved(); refreshAhsapSelectors(); renderKategoriFiltreBtn(); refreshKategoriSelect(); refreshOptHammadde();
-    if(document.getElementById('tab-reklam')?.classList.contains('active')) renderReklam();
     syncDurum('ok', '☁️ Bağlı');
   } catch(e) {
     syncDurum('hata', '⚠️ Çevrimdışı — yerel veri');
@@ -1320,7 +1312,6 @@ function sw(tab, btn){
   if(tab==='sabit')     { renderSabit(); calcSabitPay(); verimYukle(); renderDisUrunListesi(); }
   if(tab==='hammadde')  renderHammadde();
   if(tab==='siparis')   renderSiparisler();
-  if(tab==='reklam')    renderReklam();
 }
 
 // ════════════ PLATFORMLAR (manuel komisyon) ════════════
@@ -4179,8 +4170,10 @@ function duzenleUrun(idx){
 
 
 // ════════════════════════════════════════════════════════
-//  REKLAM ANALİZ
+//  (Reklam Analiz kaldırıldı — reklam harcamaları artık
+//   gelir.html > Gider > "Reklam" kategorisinden takip ediliyor)
 // ════════════════════════════════════════════════════════
+/* KALDIRILAN_BLOK_BASLANGIC
 function rekHesapla(r){
   var g=+r.goruntulem||0, m=+r.mesaj||0, s=+r.satis||0, u=+r.ucret||0;
   return{ gbm:g>0?m/g*100:null, mbs:m>0?s/m*100:null, sbm:s>0?u/s:null };
@@ -4290,6 +4283,7 @@ function rekSil(idx){
   syncYaz('fhp_reklam',reklamVeriler);
   renderReklam();
 }
+KALDIRILAN_BLOK_BITIS */
 
 init();
 </script>

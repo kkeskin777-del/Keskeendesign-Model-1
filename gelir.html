@@ -994,7 +994,7 @@ function renderOzet(){
     <div class="scard net ${oz.netGercek>=0?'positive':'negative'}">
       <div class="scard-lbl">Net Kâr / Zarar</div>
       <div class="scard-val">${oz.netGercek>=0?'+':''}${fmt(oz.netGercek)} ₺</div>
-      <div class="scard-sub">${oz.kdvOdenmesi>0?'KDV ('+fmt(oz.kdvOdenmesi)+' ₺) düşüldü':'Gelir − Gider (KDV dahil)'}</div>
+      <div class="scard-sub">${oz.topGelirDahil>0 ? 'Kârlılık oranı: %'+(oz.netGercek/oz.topGelirDahil*100).toFixed(1)+' &nbsp;|&nbsp; ' : ''}${oz.kdvOdenmesi>0?'KDV ('+fmt(oz.kdvOdenmesi)+' ₺) düşüldü':'Gelir − Gider (KDV dahil)'}</div>
     </div>
     <div class="scard kdv ${oz.kdvOdenmesi>0?'kdv-odeme':''}">
       <div class="scard-lbl">KDV Durumu</div>
