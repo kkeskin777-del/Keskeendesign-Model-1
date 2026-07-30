@@ -2177,7 +2177,7 @@ function hesapla(){
           ${kdvOrani>0?`<div class="rrow"><span class="rl">KDV (%${(kdvOrani*100).toFixed(0)})</span><span>${fmt(kdvT)} ₺${isEtsyPlat?' <span style="font-size:11px;opacity:.6;">($'+(kdvT/p.etsy_kur).toFixed(2)+')</span>':''}</span></div>`:''}
           <div class="rrow"><span class="rl" style="color:var(--a3)">💚 Net Kâr</span><span style="color:var(--a3);font-weight:700">${fmt(netK)} ₺${isEtsyPlat?' <span style="font-size:11px;opacity:.8;">($'+(netK/p.etsy_kur).toFixed(2)+')</span>':''}</span></div>
           ${(()=>{
-            const maliyetToplam = hamMal + kg;
+            const maliyetToplam = sf - netK; // hammadde+kargo+komisyon+KDV+gümrük+ek vergi+taşıyıcı — platforma göre değişen tüm giderler
             if(maliyetToplam<=0) return '';
             const karOrani = sf/maliyetToplam*100;
             const renkK = karOrani >= 150 ? '#6bcb77' : karOrani >= 100 ? '#fbbf24' : '#ff6b6b';
@@ -2187,7 +2187,7 @@ function hesapla(){
               + '<span style="color:'+renkK+';font-weight:800;">'+karOrani.toFixed(0)+'%</span>'
               + '</div>'
               + '<div class="rrow">'
-              + '<span class="rl" style="font-size:11px;color:var(--muted);">Satış Fiyatı ÷ Maliyet (Ham Maliyet+Kargo)</span>'
+              + '<span class="rl" style="font-size:11px;color:var(--muted);">Satış Fiyatı ÷ Toplam Maliyet</span>'
               + '<span style="font-size:11px;color:var(--muted);"></span>'
               + '</div>';
           })()}
