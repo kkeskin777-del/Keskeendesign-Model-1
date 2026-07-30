@@ -2177,6 +2177,20 @@ function hesapla(){
           ${kdvOrani>0?`<div class="rrow"><span class="rl">KDV (%${(kdvOrani*100).toFixed(0)})</span><span>${fmt(kdvT)} ₺${isEtsyPlat?' <span style="font-size:11px;opacity:.6;">($'+(kdvT/p.etsy_kur).toFixed(2)+')</span>':''}</span></div>`:''}
           <div class="rrow"><span class="rl" style="color:var(--a3)">💚 Net Kâr</span><span style="color:var(--a3);font-weight:700">${fmt(netK)} ₺${isEtsyPlat?' <span style="font-size:11px;opacity:.8;">($'+(netK/p.etsy_kur).toFixed(2)+')</span>':''}</span></div>
           ${(()=>{
+            if(sf<=0) return '';
+            const karOrani = netK/sf*100;
+            const renkK = karOrani >= 30 ? '#6bcb77' : karOrani >= 15 ? '#fbbf24' : '#ff6b6b';
+            const emojiK = karOrani >= 30 ? '✅' : karOrani >= 15 ? '⚠️' : '❌';
+            return '<div class="rrow" style="border-top:1px solid rgba(255,255,255,.08);margin-top:4px;padding-top:4px;">'
+              + '<span class="rl" style="color:'+renkK+';font-weight:700;">'+emojiK+' Kârlılık Oranı</span>'
+              + '<span style="color:'+renkK+';font-weight:800;">'+karOrani.toFixed(0)+'%</span>'
+              + '</div>'
+              + '<div class="rrow">'
+              + '<span class="rl" style="font-size:11px;color:var(--muted);">Net Kâr ÷ Satış Fiyatı</span>'
+              + '<span style="font-size:11px;color:var(--muted);"></span>'
+              + '</div>';
+          })()}
+          ${(()=>{
             const saat = parseFloat(document.getElementById('uretimSaat')?.value)||0;
             const hedef = parseTutar(document.getElementById('verimHedef')?.value);
             const hSaat = parseFloat(document.getElementById('verimHaftalikSaat')?.value)||0;
