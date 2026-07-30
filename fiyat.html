@@ -1193,19 +1193,21 @@ function fotoOku(file){
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
-      // Canvas ile yeniden boyutlandır ve sıkıştır
+      // Canvas ile yeniden boyutlandır ve sıkıştır — artık Google Drive'a
+      // yüklendiği için (bkz. Apps Script) küçük bir hücreye sıkıştırma
+      // derdi yok, çok daha yüksek kalite kullanabiliyoruz.
       const canvas = document.createElement('canvas');
-      const MAX = 160; // max 160px kenar — küçük thumbnail yeterli
+      const MAX = 1000; // max 1000px kenar — net bir ürün fotoğrafı için yeterli
       let w = img.width, h = img.height;
       if(w > h) { if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; } }
       else       { if(h > MAX){ w = Math.round(w*MAX/h); h = MAX; } }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      // Kaliteyi düşürerek 15KB altına sıkıştır
-      let quality = 0.6;
+      // Kaliteyi yüksek tutup sadece çok büyükse (~1.2MB üstü) hafifçe kısıyoruz
+      let quality = 0.86;
       let b64 = canvas.toDataURL('image/jpeg', quality);
-      while(b64.length > 15000 && quality > 0.05){
-        quality -= 0.05;
+      while(b64.length > 1200000 && quality > 0.5){
+        quality -= 0.08;
         b64 = canvas.toDataURL('image/jpeg', quality);
       }
       currentFotoB64 = b64;
